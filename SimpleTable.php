@@ -1,5 +1,5 @@
 <?php
- 
+
 /*
  * Tabbed Data extension.
  *
@@ -28,10 +28,10 @@
  *              does both.
  *
  * Thanks for contributions to:
- *	Smcnaught
- *	Frederik Dohr
+ *  Smcnaught
+ *  Frederik Dohr
  */
- 
+
 $wgExtensionFunctions[] = 'wfSimpleTable';
 $wgExtensionCredits['parserhook'][] = array(
   'name'=>'SimpleTable',
@@ -39,8 +39,8 @@ $wgExtensionCredits['parserhook'][] = array(
   'url'=>'http://www.mediawiki.org/wiki/Extension:SimpleTable',
   'description'=>'Convert tab-separated or similar data into a Wiki table',
 );
- 
- 
+
+
 /*
  * Setup SimpleTable extension.
  * Sets a parser hook for <tab></tab>.
@@ -48,10 +48,10 @@ $wgExtensionCredits['parserhook'][] = array(
 function wfSimpleTable() {
     new SimpleTable();
 }
- 
- 
+
+
 class SimpleTable {
- 
+
     /*
      * The permitted separators.  An array of separator style name
      * and preg pattern to match it.
@@ -63,8 +63,8 @@ class SimpleTable {
         'comma' => '/,/',
         'bar' => '/\|/',
     );
- 
- 
+
+
     /*
      * Construct the extension and install it as a parser hook.
      */
@@ -72,19 +72,19 @@ class SimpleTable {
         global $wgParser;
         $wgParser->setHook('tab', array(&$this, 'hookTab'));
     }
- 
- 
+
+
     /*
      * The hook function. Handles <tab></tab>.
      * Receives the table content and <tab> parameters.
      */
-    public function hookTab($tableText, $argv, &$parser) {
+    public function hookTab($tableText, $argv, $parser) {
         // The default field separator.
         $sep = 'tab';
- 
+
         // Default value for using table headings.
         $head = null;
- 
+
         // Build the table parameters string from the tag parameters.
         // The 'sep' and 'head' parameters are special, and are handled
         // here, not passed to the table.
@@ -97,16 +97,16 @@ class SimpleTable {
             else
                 $params .= ' ' . $key . '="' . $argv[$key] . '"';
         }
- 
+
         if (!array_key_exists($sep, $this->separators))
             return "Invalid separator: $sep";
- 
+
         // Parse and convert the table body.
         $wikiText = $this->convertTable($tableText, $head, $this->separators[$sep]);
- 
+
         // Wrap the body in table tags, with the table parameters.
         $wikiTable = "{|" . $params . "\n" . $wikiText . "|}";
- 
+
         // Done.  Parse the result, so that the table can contain Wiki
         // text.  Thanks to Smcnaught.
         $ret = $parser->parse($wikiTable,
@@ -116,24 +116,24 @@ class SimpleTable {
                               false);
         return $ret->getText();
     }
- 
- 
+
+
     /*
      * Convert tabbed data into a Wiki-markup table body.
      */
     private function convertTable($tabbed, $head, $pattern) {
         $wikitab = '';
- 
+
         // Remove initial and final newlines.
         $tabbed = trim($tabbed);
- 
+
         // Split the input into lines, and convert each line to table format.
         $lines = preg_split('/\n/', $tabbed);
         $row = 0;
         foreach ($lines as $line) {
             $wikitab .= "|-\n";
             $bar = strpos($head, 'top') !== false && $row == 0 ? '!' : '|';
- 
+
             $fields = preg_split($pattern, $line);
             $col = 0;
             foreach ($fields as $field) {
@@ -145,6 +145,5 @@ class SimpleTable {
         }
         return $wikitab;
     }
- 
+
 }
-?>
