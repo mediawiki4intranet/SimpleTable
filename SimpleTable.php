@@ -101,49 +101,37 @@ class SimpleTable {
         if (!array_key_exists($sep, $this->separators))
             return "Invalid separator: $sep";
 
-        // Parse and convert the table body.
-        $wikiText = $this->convertTable($tableText, $head, $this->separators[$sep]);
+        // Parse and convert the table body:
 
-        // Wrap the body in table tags, with the table parameters.
-        $wikiTable = "{|" . $params . "\n" . $wikiText . "|}";
+        // Parse preserving line-feeds
+        $uniq = $parser->insertStripItem("\x01");
+        $tableText = str_replace(array("\r\n", "\n\r", "\n", "\r"), array($uniq, $uniq, $uniq, ''), $tableText);
+        $html = $parser->parse($tableText, $parser->mTitle, $parser->mOptions, false, false)->getText();
+        $html = str_replace(array("\r\n", "\n\r", "\n", "\r"), array(' ', ' ', ' ', ' '), $html);
+        $html = explode("\x01", trim($html, "\x01 \t\n\r"));
 
-        // Done.  Parse the result, so that the table can contain Wiki
-        // text.  Thanks to Smcnaught.
-        $ret = $parser->parse($wikiTable,
-                              $parser->mTitle,
-                              $parser->mOptions,
-                              false,
-                              false);
-        return $ret->getText();
-    }
-
-
-    /*
-     * Convert tabbed data into a Wiki-markup table body.
-     */
-    private function convertTable($tabbed, $head, $pattern) {
-        $wikitab = '';
-
-        // Remove initial and final newlines.
-        $tabbed = trim($tabbed);
-
-        // Split the input into lines, and convert each line to table format.
-        $lines = preg_split('/\n/', $tabbed);
-        $row = 0;
-        foreach ($lines as $line) {
-            $wikitab .= "|-\n";
-            $bar = strpos($head, 'top') !== false && $row == 0 ? '!' : '|';
-
-            $fields = preg_split($pattern, $line);
-            $col = 0;
-            foreach ($fields as $field) {
-                $cbar = strpos($head, 'left') !== false && $col == 0 ? '!' : $bar;
-                $wikitab .= $cbar . " " . $field . "\n";
-                ++$col;
+        // Build HTML <table> content
+        $table = '';
+        $headtop = strpos($head, 'top') !== false;
+        $headleft = strpos($head, 'left') !== false;
+        foreach ($html as $i => $line)
+        {
+            $line = preg_replace('/<!--.*?-->/', '', $line);
+            if (trim($line))
+            {
+                $line = preg_split($this->separators[$sep], $line);
+                if ($headtop && !$i)
+                    $line = '<th>'.implode('</th><th>', $line).'</th>';
+                elseif ($headleft)
+                    $line = ('<th>'.array_shift($line).'</th>') . ('<td>'.implode('</td><td>', $line).'</td>');
+                else
+                    $line = '<td>'.implode('</td><td>', $line).'</td>';
+                $table .= '<tr>' . $line . "</tr>\n";
             }
-            ++$row;
         }
-        return $wikitab;
+        $html = "<table$params>$table</table>";
+
+        return $html;
     }
 
 }
