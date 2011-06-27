@@ -111,9 +111,6 @@ class SimpleTable
                 $params .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
         }
 
-        if (!array_key_exists($sep, $this->separators))
-            return "Invalid separator: $sep";
-
         // Parse and convert the table body:
 
         // Parse preserving line-feeds
@@ -127,12 +124,15 @@ class SimpleTable
         $table = '';
         $headtop = strpos($head, 'top') !== false;
         $headleft = strpos($head, 'left') !== false;
+        $sepre = $this->separators[$sep];
+        if (!$sepre)
+            $sepre = '/'.str_replace('/', '\\/', preg_quote($sep)).'/iu';
         foreach ($html as $i => $line)
         {
             $line = preg_replace('/<!--.*?-->/', '', $line);
             if (trim($line))
             {
-                $line = preg_split($this->separators[$sep], $line);
+                $line = preg_split($sepre, $line);
                 foreach ($line as $j => &$c)
                 {
                     $e = $headtop && !$i || $headleft && !$j ? 'th' : 'td';
