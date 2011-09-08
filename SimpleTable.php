@@ -136,7 +136,7 @@ class SimpleTable
                 foreach ($line as $j => &$c)
                 {
                     $e = $headtop && !$i || $headleft && !$j ? 'th' : 'td';
-                    $c = "<$e".($colstyle[$j] ? " style=\"".htmlspecialchars($colstyle[$j])."\"" : '').">$c</$e>";
+                    $c = "<$e".(!empty($colstyle[$j]) ? " style=\"".htmlspecialchars($colstyle[$j])."\"" : '').">$c</$e>";
                 }
                 $table .= "<tr>" . implode('', $line) . "</tr>\n";
             }
