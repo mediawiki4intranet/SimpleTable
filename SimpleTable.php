@@ -40,26 +40,17 @@
  *   Frederik Dohr
  */
 
-$wgExtensionFunctions[] = 'wfSimpleTable';
 $wgExtensionCredits['parserhook'][] = array(
     'name'        => 'SimpleTable',
     'author'      => 'Vitaliy Filippov',
     'url'         => 'http://wiki.4intra.net/SimpleTable',
     'description' => 'Convert tab-separated or similar data into a Wiki table',
 );
-
-/*
- * Setup SimpleTable extension.
- * Sets a parser hook for <tab></tab>.
- */
-function wfSimpleTable()
-{
-    new SimpleTable();
-}
+$wgHooks['ParserFirstCallInit'][] = 'SimpleTable::initParser';
 
 class SimpleTable
 {
-    /*
+    /**
      * The permitted separators.  An array of separator style name
      * and preg pattern to match it.
      */
@@ -72,12 +63,28 @@ class SimpleTable
         'bar'       => '/\|/',
     );
 
-    /*
-     * Construct the extension and install it as a parser hook.
+    /**
+     * Class is a singleton
      */
-    public function __construct() {
-        global $wgParser;
-        $wgParser->setHook('tab', array(&$this, 'hookTab'));
+    public static function instance()
+    {
+        static $instance;
+        if (!$instance)
+            $instance = new SimpleTable();
+        return $instance;
+    }
+
+    private function __construct()
+    {
+    }
+
+    /**
+     * Sets a parser hook for <tab></tab>.
+     */
+    public static function initParser($parser)
+    {
+        $parser->setHook('tab', array(self::instance(), 'hookTab'));
+        return true;
     }
 
     /*
