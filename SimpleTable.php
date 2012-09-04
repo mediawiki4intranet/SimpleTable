@@ -131,7 +131,7 @@ class SimpleTable
         $table = '';
         $headtop = strpos($head, 'top') !== false;
         $headleft = strpos($head, 'left') !== false;
-        $sepre = $this->separators[$sep];
+        $sepre = isset($this->separators[$sep]) ? $this->separators[$sep] : false;
         if (!$sepre)
             $sepre = '/'.str_replace('/', '\\/', preg_quote($sep)).'/iu';
         foreach ($html as $i => $line)
