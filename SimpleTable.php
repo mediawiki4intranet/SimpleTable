@@ -50,6 +50,8 @@ $wgHooks['ParserFirstCallInit'][] = 'SimpleTable::initParser';
 
 class SimpleTable
 {
+    private $parser;
+
     /**
      * The permitted separators.  An array of separator style name
      * and preg pattern to match it.
@@ -76,6 +78,7 @@ class SimpleTable
 
     private function __construct()
     {
+        $this->parser = new Parser();
     }
 
     /**
@@ -121,9 +124,13 @@ class SimpleTable
         // Parse and convert the table body:
 
         // Parse preserving line-feeds
-        $uniq = $parser->insertStripItem("\x01");
+        if (!$this->parser->getOptions())
+        {
+            $this->parser->parse('<!-- -->', new Title("Z"), new ParserOptions(), true, true);
+        }
+        $uniq = $this->parser->insertStripItem("\x01");
         $tableText = str_replace(array("\r\n", "\n\r", "\n", "\r"), array($uniq, $uniq, $uniq, ''), $tableText);
-        $html = $parser->parse($tableText, $parser->mTitle, $parser->mOptions, false, false)->getText();
+        $html = $this->parser->parse($tableText, $parser->mTitle, $parser->mOptions, false, false)->getText();
         $html = str_replace(array("\r\n", "\n\r", "\n", "\r"), array(' ', ' ', ' ', ' '), $html);
         $html = explode("\x01", trim($html, "\x01 \t\n\r"));
 
